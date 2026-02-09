@@ -1,0 +1,207 @@
+image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:stable
+
+stages:
+  - build
+  - docker-build
+  - deploy
+  - stop
+
+
+cache:
+  paths:
+    - .m2/repository
+    - target/lib
+
+variables:
+  FF_GITLAB_REGISTRY_HELPER_IMAGE: 1
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository -Dhttps.protocols=TLSv1.2 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+  DOCKER_IMAGE_TAG: $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-backend
+  APP_CONTEXT: "datajud-batch"
+  #CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX: gitlab.cjf.jus.br:443/suian/dependency_proxy/containers
+  MAVEN_PARAMS: -Dfinal-name=${APP_CONTEXT} -Delastic-user=${ELASTIC_USER} -Delastic-password=${ELASTIC_PASS} -Delastic-cnj-user=${CNJ_USER} -Delastic-cnj-password=${CNJ_PASS}
+  NATIVE_BUILD_DISABLE: "true"
+
+build-Jar:
+    stage: build
+    image: maven:3.6-jdk-11
+    script:
+      - mvn -DskipTests ${MAVEN_PARAMS} clean package -U
+    artifacts:
+      paths:
+        - target/*.jar
+
+build-native:
+  image: oracle/graalvm-ce:20.1.0-java11
+  stage: build
+  before_script:
+    - yum install wget -y
+    - wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+    - yum install -y apache-maven
+    - export  GRAALVM_HOME=/opt/graalvm-ce-java11-20.1.0/
+    - gu install native-image
+  script:
+    - ./mvnw package -Pnative -DskipTests -DoutputDirectory=${CI_PROJECT_DIR}/target/graal
+    - ls -la
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - ${CI_PROJECT_DIR}/target/graal/**/*-runner.jar
+  except:
+    variables:
+      - $NATIVE_BUILD_DISABLE
+
+docker-build: 
+  stage: docker-build 
+  dependencies: 
+    - build-Jar
+  needs:
+    - job: build-Jar
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:stable
+  services:
+    - name: docker:19-dind
+      command: ["--insecure-registry=gitlab.cjf.jus.br:5005"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker info  
+  script:
+    - docker build  --build-arg JAR_FILE=${APP_CONTEXT}.jar --build-arg INSTALL_CERT=false -t $DOCKER_IMAGE_TAG -f Dockerfile .
+    - docker push $DOCKER_IMAGE_TAG
+
+
+deploy-branch:
+  stage: deploy
+  image: roffe/kubectl:v1.13.1
+  dependencies:
+    - docker-build
+  needs:
+    - job: docker-build
+  tags:
+    - staging
+  environment:
+    name: review/${CI_COMMIT_REF_SLUG}
+    url: http://${CI_PROJECT_TITLE}-${CI_COMMIT_REF_SLUG}.${KUBE_INGRESS_BASE_DOMAIN}
+    on_stop: stop-branch
+  variables:
+    APP_NAME: ${CI_COMMIT_REF_SLUG}
+    APP_LABEL: ${CI_COMMIT_REF_SLUG}
+    DEPLOY_HOST: ${CI_PROJECT_TITLE}-${CI_COMMIT_REF_SLUG}.${KUBE_INGRESS_BASE_DOMAIN}
+    AMBIENTE: DESENVOLVIMENTO
+    CONTEXTO: ${APP_CONTEXT}
+  before_script:      
+      - chmod +x ./deploy.sh   
+  script:
+    - ./deploy.sh check_kube_domain
+    - ./deploy.sh ensure_namespace
+    - ./deploy.sh create_secret
+    #- kubectl delete --ignore-not-found=true pvc datajud-batch-pvc
+    #- cat pv.yml | envsubst | kubectl apply -f -
+    #- cat pvc.yml | envsubst | kubectl apply -f -
+    #
+    #- kubectl delete --ignore-not-found=true secret cifs-secret
+    #- cat cifs-secret.yml | envsubst | kubectl apply -f -
+    #
+    #- kubectl get pods,services,deployments,pvc
+    #- ./deploy.sh undeploy deployment.yml
+    #- kubectl delete --all services,deployments,pods
+    #- kubectl delete pvc datajud-batch-pvc --grace-period=0 --force
+    #- kubectl delete all --all  --grace-period=0 --force 
+    #- kubectl delete pvc --all  --grace-period=0 --force 
+    #- kubectl delete pod --all  --grace-period=0 --force 
+    #- kubectl delete --all services,deployments,pods
+    - ./deploy.sh deploy deployment.yml
+    #- kubectl get services,deployments,pods
+    #- kubectl describe pvc
+    - echo Application is accessible at ${CI_ENVIRONMENT_URL}
+    #- kubectl logs --tail=20 --since=2m deployment/$APP_NAME
+    #- kubectl logs -f deployment/$APP_NAME
+    #- echo Application is accessible at ${CI_ENVIRONMENT_URL}
+  except:
+    - master
+    - HOM
+    - DEV
+
+stop-branch:
+  stage: stop
+  image: roffe/kubectl:v1.13.0
+  tags:
+    - staging
+  environment:
+    name: review/${CI_COMMIT_REF_SLUG}
+    action: stop
+  variables:
+    APP_NAME: ${CI_COMMIT_REF_SLUG}
+    GIT_STRATEGY: none
+  script:
+    - kubectl delete service/${APP_NAME}
+    - kubectl delete deploy/${APP_NAME}
+    - kubectl delete ingress/${APP_NAME}-ingress
+  when: manual
+  except:
+    - master
+    - HOM
+    - DEV
+
+deploy-prd:
+  stage: deploy
+  image: roffe/kubectl:v1.13.1
+  dependencies:
+    - docker-build
+  needs:
+    - job: docker-build
+  tags:
+    - production
+  environment:
+    name: production/${CI_COMMIT_REF_SLUG}
+    url: http://${CI_PROJECT_TITLE}.${KUBE_INGRESS_BASE_DOMAIN}
+    on_stop: stop-prd
+  variables:
+    APP_NAME: datajud-batch-prd-${CI_COMMIT_REF_SLUG}
+    APP_LABEL: datajud-batch-prd-${CI_COMMIT_REF_SLUG}
+    DEPLOY_HOST: ${CI_PROJECT_TITLE}.${KUBE_INGRESS_BASE_DOMAIN}
+    AMBIENTE: PRODUCAO
+    CONTEXTO: ${APP_CONTEXT}
+  before_script:      
+      - chmod +x ./deploy.sh   
+  script:
+    - ./deploy.sh check_kube_domain
+    - ./deploy.sh ensure_namespace
+    - ./deploy.sh create_secret
+    - kubectl delete --all services,deployments,pods,pvc,ingress
+    - ./deploy.sh deploy deployment.yml
+    #- kubectl get services,deployments,pods
+    - kubectl describe pvc
+    - echo Application is accessible at ${CI_ENVIRONMENT_URL}
+    - kubectl logs -f deployment/$APP_NAME
+    #- echo Application is accessible at ${CI_ENVIRONMENT_URL}
+  when: manual
+  only:
+    refs:
+      - master
+
+stop-prd:
+  stage: stop
+  image: roffe/kubectl:v1.13.0
+  dependencies:
+    - deploy-prd
+  tags:
+    - production
+  environment:
+    name: production/${CI_COMMIT_REF_SLUG}
+    action: stop
+  variables:
+    APP_NAME: datajud-batch-prd-${CI_COMMIT_REF_SLUG}
+    GIT_STRATEGY: none
+  script:
+    - kubectl delete service/${APP_NAME}
+    - kubectl delete deploy/${APP_NAME}
+    - kubectl delete pod/${APP_NAME}
+    - kubectl delete ingress/${APP_NAME}-ingress
+  when: manual
+  only:
+    refs:
+      - master

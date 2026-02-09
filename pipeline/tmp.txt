@@ -1,0 +1,60 @@
+
+mutate {
+        split => { "_id" => "_" }
+}
+  
+ if [dadosBasicos][siglaTribunal] == "" {
+ 	mutate {
+  		add_field => { "[dadosBasicos][siglaTribunal]" => "%{[_id][0]}" }   
+  	}
+ }
+ 
+ if [dadosBasicos][classeProcessual] == "" {
+   mutate {
+        add_field => { "[dadosBasicos][classeProcessual]" => "%{[_id][1]}" }
+        }
+ }
+ 
+ if [dadosBasicos][grau] == "" {
+   mutate {
+        add_field => { "[dadosBasicos][grau]" => "%{[_id][2]}" }
+        }
+ }   
+ 
+ if [dadosBasicos][orgaoJulgador][codigoOrgao] == "" {
+   mutate { 
+        add_field => { "[dadosBasicos][orgaoJulgador][codigoOrgao]" => "%{[_id][3]}" }
+        }
+ }
+ 
+ if [dadosBasicos][numero] == "" {
+   mutate { 
+        add_field => { "[dadosBasicos][numero]" => "%{[_id][4]}" }
+        }
+ }
+ 
+ 
+ 
+ 
+ 
+ 
+  elasticsearch {
+       hosts => "srv-elastic-datajud-01d.cjf.local:9200"
+       index => "processos-teste"
+       #index => "%{[@metadata][target_index]}"
+       document_id => "%{[@metadata][target_id]}"
+       
+       ssl => true
+       ilm_enabled => false
+       ssl_certificate_verification => false
+       user => "datajud-batch"
+       password => "datajud-batch-pass"
+       
+       #truststore => "/usr/share/logstash/config/cacerts.jks"
+       #truststore_password => "changeit"
+       #manage_template => true
+       #template => "/usr/share/logstash/pipeline/template.json"
+       #template_overwrite => true
+       #template_name => "processos-template"
+  
+   }

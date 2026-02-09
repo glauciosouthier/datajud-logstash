@@ -1,0 +1,685 @@
+{
+    "settings": {
+        "index": {
+            "codec": "best_compression",
+            "mapping": {
+                "nested_objects": {
+                    "limit": "1000000"
+                }
+            },
+            "refresh_interval": "5s",
+            "number_of_shards": "3",
+            "number_of_replicas": "1"
+        }
+    },
+    "aliases": {
+        "alias-sem-sigilo": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 0
+                }
+            }
+        },
+        "alias-sigilo-1-a-5": {
+            "filter": {
+                "range": {
+                    "dadosBasicos.nivelSigilo": {
+                        "gte": 1,
+                        "lte": 5
+                    }
+                }
+            }
+        },
+        "view-processos-sigilo-0": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 0
+                }
+            }
+        },
+        "view-processos-sigilo-1": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 1
+                }
+            }
+        },
+        "view-processos-sigilo-2": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 2
+                }
+            }
+        },
+        "view-processos-sigilo-3": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 3
+                }
+            }
+        },
+        "view-processos-sigilo-4": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 4
+                }
+            }
+        },
+        "view-processos-sigilo-5": {
+            "filter": {
+                "term": {
+                    "dadosBasicos.nivelSigilo": 5
+                }
+            }
+        }
+    },
+    "mappings": {
+        "dynamic": "true",
+        "properties": {
+            "dadosBasicos": {
+                "properties": {
+                    "assunto": {
+                        "type": "nested",
+                        "properties": {
+                            "assuntoLocal": {
+                                "properties": {
+                                    "codigoAssunto": {
+                                        "type": "long"
+                                    },
+                                    "codigoPaiNacional": {
+                                        "type": "integer"
+                                    },
+                                    "descricao": {
+                                        "type": "keyword"
+                                    }
+                                }
+                            },
+                            "assuntoLocalPai": {
+                                "type": "long"
+                            },
+                            "codigoAssunto": {
+                                "type": "long"
+                            },
+                            "codigoNacional": {
+                                "type": "long"
+                            },
+                            "codigoPaiNacional": {
+                                "type": "long"
+                            },
+                            "descricao": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword",
+                                        "ignore_above": 256
+                                    }
+                                }
+                            },
+                            "dpj_codigoAssuntoNacional": {
+                                "type": "long"
+                            },
+                            "dpj_nomeAssuntoNacional": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword",
+                                        "ignore_above": 256
+                                    }
+                                }
+                            },
+                            "principal": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "assuntosInvalidos": {
+                        "type": "long"
+                    },
+                    "classeProcessual": {
+                        "type": "long"
+                    },
+                    "codigoLocalidade": {
+                        "type": "keyword"
+                    },
+                    "competencia": {
+                        "type": "long"
+                    },
+                    "dataAjuizamento": {
+                        "type": "date",
+                        "ignore_malformed": true
+                    },
+                    "dpj_dataAjuizamento": {
+                        "type": "date"
+                    },
+                    "dpj_totalAssuntosInvalidos": {
+                        "type": "long"
+                    },
+                    "dscSistema": {
+                        "type": "integer"
+                    },
+                    "grau": {
+                        "type": "keyword"
+                    },
+                    "intervencaoMP": {
+                        "type": "boolean"
+                    },
+                    "magistradoAtuante": {
+                        "type": "keyword"
+                    },
+                    "nivelSigilo": {
+                        "type": "long"
+                    },
+                    "numero": {
+                        "type": "keyword"
+                    },
+                    "numeroClasse": {
+                        "type": "keyword"
+                    },
+                    "orgaoJulgador": {
+                        "properties": {
+                            "codigoMunicipioIBGE": {
+                                "type": "long"
+                            },
+                            "codigoOrgao": {
+                                "type": "keyword"
+                            },
+                            "dpj_codigoOrgaoNacional": {
+                                "type": "long"
+                            },
+                            "instancia": {
+                                "type": "keyword"
+                            },
+                            "nomeOrgao": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "polo": {
+                        "type": "nested",
+                        "properties": {
+                            "parte": {
+                                "type": "nested",
+                                "properties": {
+                                    "advogado": {
+                                        "properties": {
+                                            "endereco": {
+                                                "properties": {
+                                                    "bairro": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "cep": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "cidade": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "codCidade": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "complemento": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "estado": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "logradouro": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "numero": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "pais": {
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            },
+                                            "inscricao": {
+                                                "type": "keyword"
+                                            },
+                                            "intimacao": {
+                                                "type": "boolean"
+                                            },
+                                            "nome": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "type": "keyword",
+                                                        "ignore_above": 256
+                                                    }
+                                                }
+                                            },
+                                            "numeroDocumentoPrincipal": {
+                                                "type": "keyword"
+                                            },
+                                            "tipoRepresentante": {
+                                                "type": "keyword"
+                                            }
+                                        }
+                                    },
+                                    "assistenciaJudiciaria": {
+                                        "type": "boolean"
+                                    },
+                                    "intimacaoPendente": {
+                                        "type": "long"
+                                    },
+                                    "pessoa": {
+                                        "properties": {
+                                            "cidadeNatural": {
+                                                "type": "keyword"
+                                            },
+                                            "dataNascimento": {
+                                                "type": "date"
+                                            },
+                                            "dataObito": {
+                                                "type": "date"
+                                            },
+                                            "documento": {
+                                                "properties": {
+                                                    "codigoDocumento": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "emissorDocumento": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "nome": {
+                                                        "type": "text",
+                                                        "fields": {
+                                                            "keyword": {
+                                                                "type": "keyword",
+                                                                "ignore_above": 256
+                                                            }
+                                                        }
+                                                    },
+                                                    "tipoDocumento": {
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            },
+                                            "endereco": {
+                                                "properties": {
+                                                    "bairro": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "cep": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "cidade": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "codCidade": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "complemento": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "estado": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "logradouro": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "numero": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "pais": {
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            },
+                                            "estadoNatural": {
+                                                "type": "keyword"
+                                            },
+                                            "nacionalidade": {
+                                                "type": "keyword"
+                                            },
+                                            "nascimento": {
+                                                "type": "long"
+                                            },
+                                            "nome": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "type": "keyword",
+                                                        "ignore_above": 256
+                                                    }
+                                                }
+                                            },
+                                            "nomeGenitor": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "type": "keyword",
+                                                        "ignore_above": 256
+                                                    }
+                                                }
+                                            },
+                                            "nomeGenitora": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "type": "keyword",
+                                                        "ignore_above": 256
+                                                    }
+                                                }
+                                            },
+                                            "numeroDocumentoPrincipal": {
+                                                "type": "keyword"
+                                            },
+                                            "obito": {
+                                                "type": "long"
+                                            },
+                                            "outroNome": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "type": "keyword",
+                                                        "ignore_above": 256
+                                                    }
+                                                }
+                                            },
+                                            "pessoaVinculada": {
+                                                "properties": {
+                                                    "nacionalidade": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "nome": {
+                                                        "type": "text",
+                                                        "fields": {
+                                                            "keyword": {
+                                                                "type": "keyword",
+                                                                "ignore_above": 256
+                                                            }
+                                                        }
+                                                    },
+                                                    "outroNome": {
+                                                        "type": "text",
+                                                        "fields": {
+                                                            "keyword": {
+                                                                "type": "keyword",
+                                                                "ignore_above": 256
+                                                            }
+                                                        }
+                                                    },
+                                                    "sexo": {
+                                                        "type": "keyword"
+                                                    },
+                                                    "tipoPessoa": {
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            },
+                                            "sexo": {
+                                                "type": "keyword"
+                                            },
+                                            "tipoPessoa": {
+                                                "type": "keyword"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "polo": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "procEl": {
+                        "type": "integer"
+                    },
+                    "processoVinculado": {
+                        "properties": {
+                            "numeroProcesso": {
+                                "type": "keyword"
+                            },
+                            "vinculo": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "siglaTribunal": {
+                        "type": "keyword"
+                    },
+                    "tamanhoProcesso": {
+                        "type": "long"
+                    },
+                    "totalAssuntos": {
+                        "type": "long"
+                    },
+                    "validaProcesso": {
+                        "type": "integer"
+                    },
+                    "valorCausa": {
+                        "type": "float"
+                    }
+                }
+            },
+            "dataCriacaoArquivo": {
+                "type": "date"
+            },
+            "dataProtocolo": {
+                "type": "date"
+            },
+            "dpj_assuntosInvalidos": {
+                "type": "long"
+            },
+            "dpj_classeProcessual": {
+                "type": "long"
+            },
+            "dpj_classeProcessualValida": {
+                "type": "boolean"
+            },
+            "dpj_dataAjuizamento": {
+                "type": "date"
+            },
+            "dpj_identificadorProcesso": {
+                "type": "keyword"
+            },
+            "dpj_movimentosInvalidos": {
+                "type": "long"
+            },
+            "dpj_nomeClasseProcessual": {
+                "type": "keyword"
+            },
+            "dpj_numero": {
+                "type": "keyword"
+            },
+            "dpj_orgaoJulgadorValido": {
+                "type": "boolean"
+            },
+            "dpj_totalAssuntos": {
+                "type": "long"
+            },
+            "dpj_totalAssuntosInvalidos": {
+                "type": "long"
+            },
+            "dpj_totalDatasMovimentosInvalidas": {
+                "type": "long"
+            },
+            "dpj_totalMovimentos": {
+                "type": "long"
+            },
+            "dpj_totalMovimentosInvalidos": {
+                "type": "long"
+            },
+            "grau": {
+                "type": "keyword"
+            },
+            "hash": {
+                "type": "keyword"
+            },
+            "id": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "idElastic": {
+                "type": "keyword"
+            },
+            "fileName": {
+                "type": "keyword"
+            },
+            "millisInsercao": {
+                "type": "long"
+            },
+            "millisInsercaoCJF": {
+                "type": "long"
+            },
+            "millisJobExecution": {
+                "type": "long"
+            },
+            "movimento": {
+                "type": "nested",
+                "properties": {
+                    "complementoNacional": {
+                        "properties": {
+                            "codComplemento": {
+                                "type": "long"
+                            },
+                            "codComplementoTabelado": {
+                                "type": "long"
+                            },
+                            "descricaoComplemento": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword",
+                                        "ignore_above": 256
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "dataHora": {
+                        "type": "date"
+                    },
+                    "dataMovimentoInvalida": {
+                        "type": "boolean"
+                    },
+                    "dpj_DataHora": {
+                        "type": "date"
+                    },
+                    "dpj_codigoMovimentoNacional": {
+                        "type": "long"
+                    },
+                    "dpj_nomeMovimentoNacional": {
+                        "type": "keyword"
+                    },
+                    "identificadorMovimento": {
+                        "type": "keyword"
+                    },
+                    "magistradoProlator": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "movimentoLocal": {
+                        "properties": {
+                            "codigoMovimento": {
+                                "type": "long"
+                            },
+                            "codigoPaiNacional": {
+                                "type": "integer"
+                            },
+                            "descricao": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword",
+                                        "ignore_above": 256
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "movimentoNacional": {
+                        "properties": {
+                            "codigoNacional": {
+                                "type": "integer"
+                            },
+                            "complemento": {
+                                "type": "keyword"
+                            },
+                            "complementoNacional": {
+                                "properties": {
+                                    "codComplemento": {
+                                        "type": "integer"
+                                    },
+                                    "descricaoComplemento": {
+                                        "type": "text",
+                                        "fields": {
+                                            "keyword": {
+                                                "type": "keyword",
+                                                "ignore_above": 256
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "nivelSigilo": {
+                        "type": "long"
+                    },
+                    "orgaoJulgador": {
+                        "properties": {
+                            "codigoMunicipioIBGE": {
+                                "type": "long"
+                            },
+                            "codigoOrgao": {
+                                "type": "long"
+                            },
+                            "instancia": {
+                                "type": "keyword"
+                            },
+                            "nomeOrgao": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "orgaoJulgador ": {
+                        "properties": {
+                            "codigoMunicipioIBGE": {
+                                "type": "long"
+                            },
+                            "codigoOrgao": {
+                                "type": "keyword"
+                            },
+                            "instancia": {
+                                "type": "keyword"
+                            },
+                            "nomeOrgao": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "responsavelMovimento": {
+                        "type": "keyword"
+                    },
+                    "tipoDecisao": {
+                        "type": "keyword"
+                    },
+                    "tipoResponsavelMovimento": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "protocolo": {
+                "type": "keyword"
+            },
+            "protocoloRN": {
+                "type": "keyword"
+            },
+            "siglaTribunal": {
+                "type": "keyword"
+            }
+        }
+    }
+}

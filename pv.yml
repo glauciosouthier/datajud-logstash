@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-datajud-batch
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce 
+  storageClassName: nfs-client
+  nfs: 
+    path: /DTLK
+    server: 172.25.2.131

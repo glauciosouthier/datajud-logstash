@@ -1,0 +1,23 @@
+- pipeline.id: carga-datajud-files
+  path.config: /usr/share/logstash/pipeline/datajud-files-pipeline.conf
+  pipeline.batch.size: 200
+  pipeline.workers: 3
+  queue.type: persisted
+  path.queue: /tmp/queue
+  queue.checkpoint.acks: 1024
+  queue.checkpoint.writes: 1024
+  queue.max_bytes: 8gb
+  queue.page_capacity: 200mb
+  dead_letter_queue.enable: true
+  path.dead_letter_queue: /tmp/DLQ
+
+#- pipeline.id: carga-datajud-es
+#  path.config: /usr/share/logstash/pipeline/datajud-es-pipeline.conf
+#  pipeline.batch.size: 500
+#  pipeline.workers: 3
+#  queue.type: persisted
+#  path.queue: /tmp/queue
+#  queue.max_bytes: 8gb
+#  queue.page_capacity: 300mb
+#  dead_letter_queue.enable: true
+#  path.dead_letter_queue: /tmp/DLQ

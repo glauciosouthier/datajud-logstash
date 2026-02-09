@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-datajud-batch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-client
+  volumeMode: Filesystem
+  volumeName: pv-datajud-batch
+  resources:
+    requests:
+      storage: 500Gi
+      apiVersion: v1
